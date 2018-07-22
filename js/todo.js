@@ -22,79 +22,94 @@ $(document)
         }
 
         // code to be implemented
-        $("#button").click(function(){
-            console.log($("input.input-text").val());
-            if($("input.input-text").val()){
-                $("ol").append (`<li id=${generateUUID()} class=""><input name="done-todo" type="checkbox" class="done-todo"> ${$("input.input-text").val()} </li>`);
+
+        const todoList = [];
+        let todoListfilterType = "all"
+
+        const buildTodoItem = (element) => `<li id=${element.id} class="${element.complete ? "checked" : ""}">
+        <input name="done-todo" ${element.complete ? "checked" : ""}  type="checkbox" class="done-todo"> ${element.name} </li>`
+
+        $("#button").click(function () {
+            //console.log($("input.input-text").val());
+            add()
+        })
+
+        function add() {
+            const inputText = $("input.input-text").val()
+            if (inputText) {
+                todoList.push({ id: generateUUID(), name: inputText, complete: false })
             }
+            renderTodoList();
             $("input.input-text").val("");
-        })
+        }
 
-        $("ol").on("click","li",function(){
-            let currentClass = $(this).attr("class");
-            //alert(currentClass);
-            if(currentClass == "checked"){
-                $(this).removeClass();
-            }else {
-                $(this).addClass("checked");
+        function renderTodoList() {
+            const filterExecute = (element) => [
+                {
+                    filter: "all",
+                    return: true
+                }, {
+                    filter: "active",
+                    return: !element.complete
+                }, {
+                    filter: "complete",
+                    return: element.complete
+                }
+            ].find(element => element.filter === todoListfilterType).return;
+            const newHtml = todoList.filter(filterExecute).map(element => buildTodoItem(element))
+                .reduce((element1, element2) => element1 + element2, "");
+            $("ol").html(newHtml);
+        }
+
+        $("input.input-text").keyup(function (event) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                add();
             }
-            console.log(currentClass);
         })
 
-        $("filters a").click(function(){
-            console.log(234);
+        $(document).on("click", "input.done-todo", function (event) {
+
+            //let currentClass = $(this).attr("class");
+            //console.log(currentClass);
+            //console.log($(this).parent().attr("class"))
+            $(this).parent().toggleClass("checked")
+            todoList.find(element => element.id === $(this).parent()[0].id).complete = $(this).parent().hasClass("checked")
+            //console.log(currentClass);
+            renderTodoList()
         })
 
+        $("#filters li a").click(function (event) {
+            //console.log("sadf")
+            event.preventDefault()
+            const filterType = $(this).data("filter");
+            todoListfilterType = filterType
+            renderTodoList()
+            $("#filters li a ").parent().removeClass("checked")
+            //console.log( $("#filters li a "))
+            $(this).addClass("checked")
+        })
+        $(document).on("click", "input.done-todo", function () {
+            $(this).parent().toggleClass("checked")
+        })
+
+        $(document).on("dblclick", "li", function () {
+            // console.log(4543534)
+            $(this).attr("contentEditable", "true").focus().keypress(function (event) {
+                console.log(111111)
+                let keyCode = (event.keyCode ? event.keyCode : event.which)
+                
+                if (keyCode === 13) {
+                    // console.log("getEnter")
+                    // console.log("keyCode="+keyCode)
+                    event.target.blur()
+                    // console.log(222222)
+                    $(this).attr("contentEditable", "false")
+                    todoList.find(element => element.id === $(this)[0].id).name = $(this).text()
+                }
+            })
+        })
 
     });
 
 
-
-    /**
-     * 
-jQuery 元素选择器
-
-jQuery 使用 CSS 选择器来选取 HTML 元素。
-
-$("p") 选取 <p> 元素。
-
-$("p.intro") 选取所有 class="intro" 的 <p> 元素。
-
-$("p#demo") 选取所有 id="demo" 的 <p> 元素。
-
-
-
-jQuery 属性选择器
-
-jQuery 使用 XPath 表达式来选择带有给定属性的元素。
-
-$("[href]") 选取所有带有 href 属性的元素。
-
-$("[href='#']") 选取所有带有 href 值等于 "#" 的元素。
-
-$("[href!='#']") 选取所有带有 href 值不等于 "#" 的元素。
-
-$("[href$='.jpg']") 选取所有 href 值以 ".jpg" 结尾的元素。
-
-
-$("p").css("background-color","red");
-     */
-
-    // function getAll(){
-    //     //alert("getAll");
-    //     //$("#todoList :checkbox").prop("checked", true);
-       
-    // }
-
-    // function getActive(){
-    //     $("p.checked").hide();
-    //     //$("#todoList :checkbox[checked]").parent.hide;
-    //     //alert("getActive");
-    // }
-
-    // function getComplete(){
-
-    //     alert("getComplete");
-    // }
-
-    
